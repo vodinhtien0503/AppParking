@@ -109,7 +109,7 @@ const Home: () => React$Node = ({navigation}) => {
   
  ];
 
-const GOOGLE_MAPS_APIKEY="AIzaSyBgu-6TvrXDUNv-hZjELjjDlQudWS1B2gI";
+const GOOGLE_MAPS_APIKEY="";
 
  
 useEffect(()=>{
