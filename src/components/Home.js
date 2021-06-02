@@ -63,14 +63,20 @@ const[payment,setPayment]=useState('');
    const [position, setPosition] = useState('');
    const[destination,setDestination]=useState('')
    const [showPanel,setShowPanel]=useState(false);
+   const [region,setRegion]=useState({
 
+      latitude: 16.047079,
+      longitude: 108.206230,
+      latitudeDelta: 0.0922,
+      longitudeDelta: 0.0421,
+    })
 
   const { width, height } = Dimensions.get('window');
 
 const landScape = width > height;
 
 
-const GOOGLE_MAPS_APIKEY="";
+const GOOGLE_MAPS_APIKEY="AIzaSyBgu-6TvrXDUNv-hZjELjjDlQudWS1B2gI";
 
  
 useEffect(()=>{
@@ -170,7 +176,6 @@ const requestPermission = async () => {
 
 const onChangeKey=(key)=>{
   setKey(key);
-  setData(marker)
   if(key!==''){
 setLoading(true)
 setisDirection(false)
@@ -183,6 +188,7 @@ setisDirection(false)
 setData(newData)
 }
 else{
+  setData(marker)
   setLoading(false)
   setisDirection(false)
 
@@ -207,7 +213,7 @@ const onSelected=(id)=>{
         <View style={styles.content}>
                        
          <View  style={ styles.keysearch}>
-          <Icon style={styles.iconsearch}  name="search" color="white" size={20}/>
+          <Icon style={styles.iconsearch}  name="search" color="white" size={25}/>
           <TextInput
           style={styles.input}
           placeholder="Key Search"
@@ -228,7 +234,7 @@ const onSelected=(id)=>{
           <View style={styles.listItem}>
             <Icon name="marker" color="red"/>
             <Text style={styles.listItemText}
-                onPress={()=>{setCamera(item),setLoading(false),setKey('')}}
+                onPress={()=>{setLoading(false)}}
             >{item.title}</Text>
           </View>
         )}
@@ -256,19 +262,19 @@ const onSelected=(id)=>{
           >
          <View style={styles.modalView}>
             <View style={styles.modalItem}>
-           <Icon  style={styles.iconmodal} name='search' size={20}/>
+           <Icon  style={styles.iconmodal} name='car' size={25}/>
           <Text style={styles.modaltext}>Khoảng cách: {distance} km</Text>
           </View>
              <View style={styles.modalItem}>
-           <Icon style={styles.iconmodal}  name='search' size={20}/>
+           <Icon style={styles.iconmodal}  name='clock' size={25}/>
            <Text style={styles.modaltext}>Thời gian: {parseInt(duration/60)}giờ {parseInt(duration%60)}phút</Text>
            </View>
               <View style={styles.modalItem}>
-           <Icon style={styles.iconmodal} name='search' size={20}/>
+           <Icon style={styles.iconmodal} name='store' size={22}/>
             <Text style={styles.modaltext}>Hoạt động: {time} </Text>
             </View>
                <View style={styles.modalItem}>
-           <Icon style={styles.iconmodal} name='search' size={20}/>
+           <Icon style={{padding:28}} name='dollar-sign' size={25}/>
              <Text style={styles.modaltext}>Phí: {payment} {payment=='free'?"":"VNĐ"}</Text>
              </View>
 
@@ -282,16 +288,14 @@ const onSelected=(id)=>{
           showsUserLocation={true}
           showsMyLocationButton={true}
           zoomEnabled = {true}
-           initialRegion={{
-      latitude: 16.047079,
-      longitude: 108.206230,
-      latitudeDelta: 0.0922,
-      longitudeDelta: 0.0421,
-    }}
+           region={region}
+          onRegionChangeComplete={region => setRegion(region)}
+
+         
   >
   {data.map(marker => (
     Platform.OS==='android'&&
-    <Marker key={marker.id}
+    <Marker key={parseInt(marker.id)}
       coordinate={marker.latlng}
       title={marker.title}
       description={marker.subtitle}
@@ -483,7 +487,7 @@ const styles = StyleSheet.create({
     elevation: 5,
 
     height:310,
-  
+    backgroundColor:'transparent'
   
   }
   
