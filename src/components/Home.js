@@ -29,6 +29,7 @@ import {
   Platform,
   Modal,
   Pressable,
+  Dimensions
 } from 'react-native';
 
 import {
@@ -39,17 +40,19 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 import Icon from 'react-native-vector-icons/FontAwesome5'
-
-
+import database from '@react-native-firebase/database';
+import SlidingUpPanel from 'rn-sliding-up-panel';
 
 const Home: () => React$Node = ({navigation}) => {
 
-
+const[time,setTime]=useState('');
+const[payment,setPayment]=useState('');
  const [key,setKey]=useState('');
-  const [ref,setRef]=useState('');
   const [loading,setLoading]=useState(false);
     const [isDirection,setisDirection]=useState(false);
   const [data,setData]=useState([])
+    const [marker,setMaker]=useState([])
+
     const [selectid,setSelectid]=useState('');
         const [camera,setCamera]=useState('');
         const [modalshow,setModalshow]=useState(false);
@@ -59,62 +62,32 @@ const Home: () => React$Node = ({navigation}) => {
 
    const [position, setPosition] = useState('');
    const[destination,setDestination]=useState('')
- var markers=[
+   const [showPanel,setShowPanel]=useState(false);
 
- { 
-   id:1,
-  latlng:{
-    latitude: 16.0060588,
-    longitude: 108.2424348,
-  },
-    title: 'Bãi đỗ xe Đầm Sen',
-    subtitle: 'Bãi đỗ xe'
-  },
-  { 
-   id:2,
-  latlng:{
-    latitude: 16.0014173,
-    longitude: 108.2218112,
-  },
-    title: 'Bãi đỗ xe SVĐ Hòa Xuân',
-    subtitle: 'Bãi đỗ xe'
-  },
-  { 
-   id:3,
-  latlng:{
-    latitude: 15.9984614,
-    longitude: 108.2303253,
-  },
-    title: 'Bãi đỗ xe Bình Kỳ',
-    subtitle: 'Bãi đỗ xe'
-  },
-  { 
-   id:4,
-  latlng:{
-    latitude: 16.0044465,
-    longitude: 108.1927123,
-  },
-    title: 'Bãi đỗ xe Phong Bắc',
-    subtitle: 'Bãi đỗ xe'
-  },
-  { 
-   id:5,
-  latlng:{
-    latitude: 15.994782,
-    longitude: 108.2034297,
-  },
-    title: 'Bãi đỗ xe Trường Sơn',
-    subtitle: 'Bãi đỗ xe'
-  },
-  
- ];
 
-const GOOGLE_MAPS_APIKEY="";
+  const { width, height } = Dimensions.get('window');
+
+const landScape = width > height;
+
+
+const GOOGLE_MAPS_APIKEY="AIzaSyBgu-6TvrXDUNv-hZjELjjDlQudWS1B2gI";
 
  
 useEffect(()=>{
+database()
+  .ref('/')
+  .on('value', snapshot => {
+          let db=[];
+snapshot.forEach(snap=>{
+ db.push(snap.val())
 
-setData(markers)
+});
+ 
+  setData(db)
+  setMaker(db)
+  console.log(data)
+  });
+
 
 
 },[])
@@ -197,7 +170,7 @@ const requestPermission = async () => {
 
 const onChangeKey=(key)=>{
   setKey(key);
-  setData(markers)
+  setData(marker)
   if(key!==''){
 setLoading(true)
 setisDirection(false)
@@ -230,11 +203,9 @@ const onSelected=(id)=>{
   return (
     <>
       <StatusBar barStyle="dark-content" />
-      <SafeAreaView style={styles.container}>
-       
-         <View style={styles.content}>
-         
-               
+      <SafeAreaView style={styles.container}>     
+        <View style={styles.content}>
+                       
          <View  style={ styles.keysearch}>
           <Icon style={styles.iconsearch}  name="search" color="white" size={20}/>
           <TextInput
@@ -274,7 +245,6 @@ const onSelected=(id)=>{
         visible={modalshow}
          onBackdropPress={() => setModalshow(!modalshow)}
         onRequestClose={() => {
-          Alert.alert("Modal has been closed.");
           setModalshow(!modalshow);
         }}
         
@@ -285,8 +255,22 @@ const onSelected=(id)=>{
 
           >
          <View style={styles.modalView}>
+            <View style={styles.modalItem}>
+           <Icon  style={styles.iconmodal} name='search' size={20}/>
           <Text style={styles.modaltext}>Khoảng cách: {distance} km</Text>
+          </View>
+             <View style={styles.modalItem}>
+           <Icon style={styles.iconmodal}  name='search' size={20}/>
            <Text style={styles.modaltext}>Thời gian: {parseInt(duration/60)}giờ {parseInt(duration%60)}phút</Text>
+           </View>
+              <View style={styles.modalItem}>
+           <Icon style={styles.iconmodal} name='search' size={20}/>
+            <Text style={styles.modaltext}>Hoạt động: {time} </Text>
+            </View>
+               <View style={styles.modalItem}>
+           <Icon style={styles.iconmodal} name='search' size={20}/>
+             <Text style={styles.modaltext}>Phí: {payment} {payment=='free'?"":"VNĐ"}</Text>
+             </View>
 
          </View>
          </Pressable>
@@ -311,7 +295,7 @@ const onSelected=(id)=>{
       coordinate={marker.latlng}
       title={marker.title}
       description={marker.subtitle}
-      onPress={(e)=>setDestination(e.nativeEvent.coordinate)}
+      onPress={()=>{setDestination(marker.latlng),setTime(marker.time),setPayment(marker.payment)}}
       animateMarkerToCoordinate={camera.latlng,500}
     
     >
@@ -320,6 +304,9 @@ const onSelected=(id)=>{
     style={styles.imgmarker}
     resizeMode="contain"
       />
+
+    
+         
     </Marker>
       
       
@@ -337,7 +324,6 @@ const onSelected=(id)=>{
   }}
    optimizeWaypoints={true}
             onStart={(params) => {
-              alert(`Started routing between "${params.origin}" and "${params.destination}"`);
             }}
             onReady={result => {
             setDistance(result.distance)
@@ -448,8 +434,16 @@ const styles = StyleSheet.create({
     backgroundColor:'red',
     color:"white",
   },
+  modalItem:{
+    flexDirection:'row',
+    justifyContent:'center',
+
+  },
   iconsearch:{
     padding:10,
+  },
+  iconmodal:{
+    padding:22,
   },
   listItem: {
     flexDirection:'row',
@@ -465,8 +459,11 @@ const styles = StyleSheet.create({
     padding:10,
   },
   modaltext:{
- fontSize:20,
- padding:20
+ fontSize:16,
+ padding:20,
+ flex:0.9,
+ paddingLeft:35,
+ color:'red'
   },
    modalView: {
     margin: 20,
@@ -474,7 +471,7 @@ const styles = StyleSheet.create({
     borderColor:"red",
     backgroundColor: "white",
     borderRadius: 20,
-    padding: 35,
+    padding: 20,
     alignItems: "flex-start",
     shadowColor: "#000",
     shadowOffset: {
@@ -485,9 +482,8 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
 
-    height:200,
-    top:20,
-    bottom:20,
+    height:310,
+  
   
   }
   
